@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IMessage } from "./Message";
+import { IMessage, MessageSchema } from "./Message";
 
 export interface IUser extends Document {
   username: string;
@@ -7,8 +7,9 @@ export interface IUser extends Document {
   password: string;
   verificationCode: string;
   verifyExpiry: Date;
+  isVerified: boolean;
   isAcceptingMessages: boolean;
-  message: IMessage[]
+  messages: IMessage[]
 }
 
 export const UserSchema: Schema<IUser> = new Schema({
@@ -20,22 +21,33 @@ export const UserSchema: Schema<IUser> = new Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: [true, "Email is required"],
+    unique: true,
+    match: [/.+\@.+\..+/, "Invalid email"],
   },
   password: {
     type: String,
-    required: true,
+    required: [true, "Password is required"],
   },
   verificationCode: {
     type: String,
-    required: true,
+    required: [true, "Verification code is required"],
   },
   verifyExpiry: {
     type: Date,
-    required: true,
+    required: [true, "Verification expiry is required"],
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
   },
   isAcceptingMessages: {
     type: Boolean,
-    required: true,
+    default: true,
   },
+  messages: [MessageSchema],
 })
+
+const UserModel = (mongoose.models.User as mongoose.Model<IUser>) || mongoose.model<IUser>("User", UserSchema);
+
+export default UserModel;
